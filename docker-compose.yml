@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  wcag-scraper:
+    build: .
+    container_name: wcag-scraper-api
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - JAVA_OPTS=-Xmx512m
+    deploy:
+      resources:
+        limits:
+          memory: 1G # Selenium needs a bit of breathing room
+    restart: unless-stopped

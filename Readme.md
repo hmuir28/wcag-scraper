@@ -1,63 +1,70 @@
 🚀 WCAG 2.0 Accessibility Scraper
-Este proyecto es una herramienta de auditoría de accesibilidad web construida con Spring Boot 3. Permite analizar sitios web (estáticos y dinámicos) para validar el cumplimiento de las pautas WCAG 2.0.
+A professional-grade web accessibility auditing tool built with Spring Boot 3. This application scans websites to validate compliance with WCAG 2.0 guidelines, handling both static HTML and modern JavaScript-heavy SPAs.
 
-Utiliza Jsoup para análisis ultrarrápido de sitios estáticos y Selenium (Headless Chrome) para Single Page Applications (SPA) como React, Angular o Vue.
+🌟 Features
+Hybrid Analysis Engine:
 
-🛠 Tecnologías
-Java 17
+Jsoup: For ultra-fast scanning of static/SSR sites.
+
+Selenium (Headless Chrome): For full DOM rendering of React, Angular, and Vue apps.
+
+Clean Architecture: Separation of concerns between the Scraper (I/O) and the Validator (Rules).
+
+Dockerized: Fully containerized environment including Chromium binaries and JRE.
+
+Lombok-powered: Clean, boilerplate-free DTOs and Services.
+
+🛠 Tech Stack
+Java 17 (Temurin)
 
 Spring Boot 3.2.5
 
 Maven
 
-Jsoup (Static Scraping)
+Selenium WebDriver (Chrome Headless)
 
-Selenium (Dynamic Rendering)
+Jsoup
 
-Lombok
+Docker & Docker Compose
 
-📋 Prerrequisitos
-JDK 17 o superior instalado.
+📋 Prerequisites
+Docker and Docker Compose installed.
 
-Maven instalado.
+Alternatively (for local run): JDK 17, Maven, and Google Chrome installed.
 
-Google Chrome instalado (necesario para el modo dinámico con Selenium).
+🚀 Quick Start (Docker)
+The fastest way to get the scraper running with all its dependencies (including Chromium) is using Docker:
 
-🚀 Ejecución en Local
-1. Clonar y Compilar
-   Bash
+Bash
 
-git clone https://github.com/tu-usuario/wcag-scraper.git
+# Clone the repository
+git clone https://github.com/your-user/wcag-scraper.git
 cd wcag-scraper
-mvn clean install
-2. Ejecutar la Aplicación
-   Bash
 
-mvn spring-boot:run
-La aplicación iniciará en http://localhost:8080.
+# Build and run the container
+docker-compose up --build
+The API will be available at http://localhost:8080.
 
-📡 Endpoints de la API
-1. Análisis Estático (Rápido)
-   Ideal para sitios tradicionales (Server-side rendered). Usa Jsoup para una respuesta inmediata.
+📡 API Endpoints
+1. Static Analysis (Fast)
+   Best for traditional websites. It does not execute JavaScript.
 
-URL: GET /api/v1/validator/wcag
+Endpoint: GET /api/v1/validator/wcag
 
-Params: url (String)
+Query Param: url
 
-Ejemplo: curl "http://localhost:8080/api/v1/validator/wcag?url=https://www.example.com"
+Example: curl "http://localhost:8080/api/v1/validator/wcag?url=https://www.wikipedia.org"
 
-2. Análisis Dinámico (SPA)
-   Usa Selenium para renderizar JavaScript antes de validar. Más lento pero preciso para React/Angular.
+2. Dynamic Analysis (SPA Support)
+   Triggers a Headless Chrome instance to render JavaScript before auditing.
 
-URL: GET /api/v1/validator/wcag-dynamic
+Endpoint: GET /api/v1/validator/wcag-dynamic
 
-Params: url (String)
+Query Param: url
 
-Ejemplo: curl "http://localhost:8080/api/v1/validator/wcag-dynamic?url=https://saucedemo.com"
+Example: curl "http://localhost:8080/api/v1/validator/wcag-dynamic?url=https://toscrape.com"
 
-📊 Estructura del Reporte (JSON)
-La respuesta sigue este formato:
-
+📊 Sample Response
 JSON
 
 {
@@ -66,26 +73,35 @@ JSON
 "violations": [
 {
 "rule": "WCAG 1.1.1 (A)",
-"message": "La imagen no tiene atributo 'alt' descriptivo.",
-"context": "img[src=logo.png]"
+"message": "The image is missing a descriptive 'alt' attribute.",
+"context": "img[src=hero_banner.jpg]"
+},
+{
+"rule": "WCAG 3.1.1 (A)",
+"message": "The <html> element does not have a defined 'lang' attribute.",
+"context": "<html>"
 }
 ]
 }
-🏗 Arquitectura del Proyecto
-El proyecto sigue principios de Clean Architecture:
+🏗 Project Structure
+src/main/java/com/dev/wcag/controller: REST Entry points.
 
-controller/: Definición de los endpoints REST.
+src/main/java/com/dev/wcag/service/ScraperService: Handles HTTP connections and Selenium orchestration.
 
-service/ScraperService: Orquestador de la extracción de HTML.
+src/main/java/com/dev/wcag/service/WcagValidator: The core engine containing accessibility logic.
 
-service/WcagValidator: Motor de reglas de negocio (Decoupled).
+src/main/java/com/dev/wcag/dto: Data Transfer Objects (Request/Response).
 
-dto/: Objetos de transferencia de datos.
+⚙️ Configuration for Production
+Memory Management: The docker-compose.yml limits the container to 1GB RAM. This is crucial because Selenium spawns Chrome processes that are memory-intensive.
 
-⚠️ Notas de Producción
-Recursos: El endpoint /wcag-dynamic levanta una instancia de Chrome. En entornos con alto tráfico, se recomienda implementar un Semaphore o un pool de drivers para evitar el agotamiento de RAM.
+Concurrency: By default, this is a synchronous execution. For heavy loads, consider implementing a Semaphore in ScraperService to limit the number of simultaneous Chrome instances.
 
-Docker: Si despliegas en Docker, asegúrate de usar una imagen base que incluya las librerías de Chrome/Chromium.
+🛠 Development (Local)
+If running without Docker, ensure your CHROME_BIN environment variable points to your local Chrome/Chromium executable, or rely on WebDriverManager (included in pom.xml).
 
-🤝 Contribuir
-Para añadir nuevas reglas WCAG, edita la clase WcagValidator.java añadiendo métodos privados de validación y llamándolos en el método principal validate().
+Bash
+
+````
+mvn clean install
+mvn spring-boot:run

@@ -30,6 +30,9 @@ public class ScraperService {
             driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
 
             String renderedHtml = driver.getPageSource();
+
+            System.out.println(renderedHtml);
+
             Document doc = Jsoup.parse(renderedHtml);
 
             List<ReportResponse.Violation> violations = validator.validate(doc);
