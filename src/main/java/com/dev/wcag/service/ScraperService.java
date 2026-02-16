@@ -1,12 +1,15 @@
 package com.dev.wcag.service;
 
 import com.dev.wcag.dto.ReportResponse;
+import io.github.bonigarcia.wdm.WebDriverManager;
+import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.stereotype.Service;
-import lombok.RequiredArgsConstructor;
 
-import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 
 @Service
@@ -15,18 +18,29 @@ public class ScraperService {
 
     private final WcagValidator validator;
 
-    public ReportResponse analyze(String url) throws IOException {
-        Document doc = Jsoup.connect(url)
-                .timeout(10000)
-                .userAgent("Mozilla/5.0 (WCAG Validator)")
-                .get();
+    public ReportResponse analyzeDynamic(String url) {
+        WebDriverManager.chromedriver().setup();
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--headless", "--disable-gpu", "--window-size=1920,1080");
 
-        List<ReportResponse.Violation> violations = validator.validate(doc);
+        ChromeDriver driver = new ChromeDriver(options);
 
-        return ReportResponse.builder()
-                .url(url)
-                .isCompliant(violations.isEmpty())
-                .violations(violations)
-                .build();
+        try {
+            driver.get(url);
+            driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
+
+            String renderedHtml = driver.getPageSource();
+            Document doc = Jsoup.parse(renderedHtml);
+
+            List<ReportResponse.Violation> violations = validator.validate(doc);
+
+            return ReportResponse.builder()
+                    .url(url)
+                    .isCompliant(violations.isEmpty())
+                    .violations(violations)
+                    .build();
+        } finally {
+            driver.quit();
+        }
     }
 }
