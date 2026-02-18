@@ -14,3 +14,5 @@ services:
         limits:
           memory: 1G # Selenium needs a bit of breathing room
     restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

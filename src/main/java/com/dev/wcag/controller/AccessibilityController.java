@@ -18,7 +18,7 @@ public class AccessibilityController {
     @GetMapping("/wcag")
     public ResponseEntity<ReportResponse> validate(@RequestParam String url) {
         try {
-            return ResponseEntity.ok(scraperService.analyzeDynamic(url));
+            return ResponseEntity.ok(scraperService.analyzeDynamic(url, "wcag-2-1"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
